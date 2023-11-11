@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef char* string;
+typedef char *string;
 typedef int bool;
 #define true  1
 #define false 0
@@ -15,7 +15,7 @@ typedef int bool;
  */
 typedef struct list {
     int          size;
-    struct list* list;
+    struct list *list;
 } list;
 
 list createList(int count, ...) {
@@ -132,7 +132,12 @@ list binaryToList(string code) {
                 if (character == '0') depth++;
                 if (character == '1') depth--;
 
-                data             = realloc(data, ++size);
+                data = realloc(data, ++size);
+
+                if (data == NULL) {
+                    printf("Memory allocation failed\n");
+                    exit(5);
+                }
                 data[ size - 1 ] = code[ ++i ];
             }
 
@@ -145,46 +150,21 @@ list binaryToList(string code) {
     return terms;
 }
 
-string replaceAll(string original, string replace, string with) {
-    string result;             // the return string
-    string insert;             // the next insert point
-    string temp;               // varies
-    int    replacement_length; // length of rep (the string to remove)
-    int    substitute_length;  // length of with (the string to replace rep with)
-    int    front_length;       // distance between rep and end of last rep
-    int    count;              // number of replacements
-
-    // sanity checks and initialization
-    if (!original || !replace) return NULL;
-    replacement_length = strlen(replace);
-    if (replacement_length == 0) return NULL; // empty rep causes infinite loop during count
-    if (!with) with = "";
-    substitute_length = strlen(with);
-
-    // count the number of replacements needed
-    insert = original;
-    for (count = 0; (temp = strstr(insert, replace)); ++count) {
-        insert = temp + replacement_length;
+char *replaceAll(char *str, char *oldstr, char *newstr) {
+    char bstr[ strlen(str) ];
+    memset(bstr, 0, sizeof(bstr));
+    int i;
+    for (i = 0; i < strlen(str); i++) {
+        if (!strncmp(str + i, oldstr, strlen(oldstr))) {
+            strcat(bstr, newstr);
+            i += strlen(oldstr) - 1;
+        } else {
+            strncat(bstr, str + i, 1);
+        }
     }
 
-    temp = result = malloc(strlen(original) + (substitute_length - replacement_length) * count + 1);
-
-    if (!result) return NULL;
-
-    // first time through the loop, all the variable are set correctly
-    // from here on,
-    //    tmp points to the end of the result string
-    //    ins points to the next occurrence of rep in orig
-    //    orig points to the remainder of orig after "end of rep"
-    while (count--) {
-        insert       = strstr(original, replace);
-        front_length = insert - original;
-        temp         = strncpy(temp, original, front_length) + front_length;
-        temp         = strcpy(temp, with) + substitute_length;
-        original += front_length + replacement_length; // move to next "end of rep"
-    }
-    strcpy(temp, original);
-    return result;
+    strcpy(str, bstr);
+    return str;
 }
 
 string buildNumber(int number) {
@@ -199,19 +179,54 @@ string buildNumber(int number) {
     return output;
 }
 
-string itoa(int value) {
-    int size = floor(log10(value)) + 1;
+// A utility function to reverse a string
+void reverse(char str[], int length) {
+    int start = 0;
+    int end   = length - 1;
+    while (start < end) {
+        char temp    = str[ start ];
+        str[ start ] = str[ end ];
+        str[ end ]   = temp;
+        end--;
+        start++;
+    }
+}
+// Implementation of citoa()
+char *citoa(int num, int base) {
+    char *str = malloc(sizeof(char) * 1000);
+    int  i          = 0;
+    bool isNegative = false;
 
-    string str = malloc(size + 1); // Add space for null terminator
-    if (!str) return NULL;         // Return NULL if malloc failed
+    /* Handle 0 explicitly, otherwise empty string is
+     * printed for 0 */
+    if (num == 0) {
+        str[ i++ ] = '0';
+        str[ i ]   = '\0';
+        return str;
+    }
 
-    str[ size ] = '\0'; // Null terminate the string
-    int index   = size - 1;
+    // In standard itoa(), negative numbers are handled
+    // only with base 10. Otherwise numbers are
+    // considered unsigned.
+    if (num < 0 && base == 10) {
+        isNegative = true;
+        num        = -num;
+    }
 
-    do {
-        str[ index-- ] = '0' + (value % 10); // Write the last digit of value to str
-        value /= 10;                         // Remove the last digit from value
-    } while (value != 0);
+    // Process individual digits
+    while (num != 0) {
+        int rem    = num % base;
+        str[ i++ ] = (rem > 9) ? (rem - 10) + 'a' : rem + '0';
+        num        = num / base;
+    }
+
+    // If number is negative, append '-'
+    if (isNegative) str[ i++ ] = '-';
+
+    str[ i ] = '\0'; // Append string terminator
+
+    // Reverse the string
+    reverse(str, i);
 
     return str;
 }
@@ -220,29 +235,104 @@ string binaryToVisual(string code, bool addCommas) {
     string withComma = replaceAll(code, "0", "[");
     withComma        = replaceAll(withComma, "1", "]");
     withComma        = replaceAll(withComma, "][", "], [");
+    withComma        = replaceAll(withComma, "[]", "null");
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 1; i < 100; i++) {
         string number = buildNumber(i);
         number        = replaceAll(number, "0", "[");
         number        = replaceAll(number, "1", "]");
         number        = replaceAll(number, "][", "], [");
         number        = replaceAll(number, "[]", "null");
 
-        withComma = replaceAll(withComma, number, itoa(i));
+        // printf("'%s' '%s'\n", withComma, number);
+        withComma = replaceAll(withComma, number, citoa(i, 10));
     }
 
-    withComma = replaceAll(withComma, "[1, 1, null]", "cat");
+    withComma           = replaceAll(withComma, "[1, 1, null]", "cat");
     string withoutComma = replaceAll(withComma, "], [", "] [");
 
     return addCommas ? withComma : withoutComma;
 }
 
-list application(list left, list right) {
-    return createList(3, two, left, right);
+list push_array(list left, list right) { return push(left, right, true); }
+
+list application(list left, list right) { return createList(3, two, left, right); }
+
+list function(list variable, list statement) { return createList(3, one, variable, statement); }
+
+string visualToBinary(string code) {
+    const int size = strlen(code);
+    int       i    = 0;
+
+    int    output_size = 1;
+    string output      = malloc(sizeof(char) * output_size);
+
+    while (i < size) {
+        char character = code[ i ];
+
+        if (character == '[') {
+            output = realloc(output, ++output_size);
+            if (output == NULL) {
+                printf("Memory allocation failed\n");
+                exit(5);
+            }
+            output[ output_size - 1 ] = '0';
+        }
+
+        if (character == ']') {
+            output = realloc(output, ++output_size);
+            if (output == NULL) {
+                printf("Memory allocation failed\n");
+                exit(5);
+            }
+            output[ output_size - 1 ] = '1';
+        }
+
+        i++;
+    }
+
+    return output;
 }
 
-list function(list variable, list statement) {
-    return createList(3, one, variable, statement);
+#define terms term.list
+
+list evaluate(list term) {
+    if (term.size == 0) return term;
+
+    if (isOne(terms[ 0 ])) {
+        // First element is one, The term might be a function.
+        if (term.size == 3) {
+            list variable  = terms[ 1 ];
+            list statement = terms[ 2 ];
+
+            return createList(3, one, variable, evaluate(statement));
+        }
+    } else if (isTwo(terms[ 0 ])) {
+        // First element is two, The term might be an application.
+        if (term.size == 3) {
+            list left  = terms[ 1 ];
+            list right = terms[ 2 ];
+
+            // left side is a function, replace values
+            if (isOne(left.list[ 0 ]) && left.size == 3) {
+                list variable  = left.list[ 1 ];
+                list statement = left.list[ 2 ];
+
+                // return replaced statement
+                // ((λvar. expr) b)
+                // return expr.replace(var, b)
+                return replace(statement, variable, right);
+            }
+
+            // cannot modify application yet...
+            // (a b)
+            // return (a b)
+        }
+
+        // otherwise not an application, just return it.
+    }
+
+    return term;
 }
 // ------------------------- PARSER -------------------------
 
@@ -254,6 +344,15 @@ int main() {
     nullfunction = createList(3, one, one, null);
     cat          = createList(3, one, one, one);
 
-    printf("Binary form of cat: %s\n", buildNumber(2));
+    // string program_binary = visualToBinary("[[[]] [[[]] [[]] []] [[] []]]");
+    list program_list = application(cat, two);
+
+    printf("Code: %s\n", binary(program_list));
+    list   result        = evaluate(program_list);
+    string result_string = binary(result);
+    printf("Result: %s\n", result_string);
+    string visual = binaryToVisual(result_string, true);
+    printf("Visual: %s\n", visual);
+
     return 0;
 }

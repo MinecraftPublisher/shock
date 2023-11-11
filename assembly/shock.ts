@@ -351,3 +351,11 @@ export function evaluate(term: List): List {
 
     return term
 }
+
+// shock._application(shock.constants.value.nullfunction, shock.binaryToList(shock.buildNumber(2)).elements[0])
+// (nullfunc 2)
+// [[[] []] [[[]] [[]] []] [[] []]]
+// 00010110001100110110010111
+
+// 001010101010101011
+// [[] [] [] [] [] [] [] []]

@@ -1,0 +1,20 @@
+<!DOCTYPE html5>
+<html>
+  <head></head>
+  <body>
+    <style>
+      body {
+        background-color: #000;
+      }
+    </style>
+    <script type='module'>
+      import * as x from './build/release.js'
+
+      function unwrap(List) {
+        return List.elements.map(e => unwrap(e))
+      }
+
+      globalThis.lambda = x
+    </script>
+  </body>
+</html>

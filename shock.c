@@ -69,6 +69,7 @@ list null;
 list zero;
 list one;
 list two;
+list three;
 list nullfunction;
 list cat;
 // ------------------------- CONSTANTS -------------------------
@@ -84,6 +85,7 @@ list cat;
 #define isTrue(term)  assert_ll(term, one)
 #define isOne(term)   isTrue(term)
 #define isTwo(term)   assert_ll(term, two)
+#define isThree(term) assert_ll(term, three)
 // ------------------------- ASSERTIONS -------------------------
 
 list replace(list term, list variable, list statement) {
@@ -330,6 +332,15 @@ list evaluate(list term) {
         }
 
         // otherwise not an application, just return it.
+    } else if (isThree(terms[0])) {
+        // First element is three, The term might be a push.
+        if(term.size == 3) {
+            list left = terms[1];
+            list right = terms[2];
+
+            // push element to array and free previous array, then return
+            return push(left, right, true);
+        }
     }
 
     return term;
@@ -341,6 +352,7 @@ int main() {
     zero         = null;
     one          = createList(1, empty());
     two          = createList(2, empty(), empty());
+    three = createList(3, empty(), empty());
     nullfunction = createList(3, one, one, null);
     cat          = createList(3, one, one, one);
 

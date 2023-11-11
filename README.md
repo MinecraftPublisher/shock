@@ -1,4 +1,4 @@
-## Shock is a language completely involving lists.
+## Shock is a language completely involving lists. (IN DEVELOPMENT)
 
 All there is in Shock are lists.
 

@@ -1,20 +1,20 @@
-<!DOCTYPE html5>
+<!DOCTYPE html>
 <html>
   <head></head>
   <body>
-    <style>
-      body {
-        background-color: #000;
-      }
-    </style>
-    <script type='module'>
-      import * as x from './build/release.js'
+	<style>
+	  body {
+		background-color: #000;
+	  }
+	</style>
+	<script type='module'>
+	  import * as lambda from './assembly/shock.js'
 
-      function unwrap(List) {
-        return List.elements.map(e => unwrap(e))
-      }
+	  function unwrap(List) {
+		return List.elements.map(e => unwrap(e))
+	  }
 
-      globalThis.lambda = x
-    </script>
+	  globalThis.lambda = lambda
+	</script>
   </body>
 </html>

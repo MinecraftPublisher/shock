@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "assemblyscript": "^0.27.16",
+    "bun-types": "^1.0.11",
     "eslint": "^8.53.0"
   },
   "type": "module",
@@ -12,11 +13,10 @@
   },
   "scripts": {
     "asbuild:debug": "asc assembly/shock.ts --target debug",
-    "asbuild:release": "asc assembly/shock.ts --target release",
+    "asbuild:release": "asc assembly/shock.ts --bindings raw -O3z --converge --noAssert --runtime stub --target release",
     "asbuild": "npm run asbuild:debug && npm run asbuild:release",
     "test": "node tests",
-    "start": "npx serve .",
-    "write": "asc ../assembly/shock.ts --outFile ./shock.js --textFile ./shock.wat -O3z --converge --runtime stub --bindings raw"
+    "start": "npx serve ."
   },
   "devDependencies": {
     "@types/node": "^20.9.0"

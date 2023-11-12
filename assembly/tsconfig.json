@@ -2,6 +2,6 @@
   "extends": "assemblyscript/std/assembly.json",
   "include": [
     "./**/*.ts",
-    "shock.ts"
+    "shock.old.ts"
   ]
 }
